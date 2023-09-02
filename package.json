@@ -1,7 +1,7 @@
 {
   "name": "casodeestudoddd",
   "version": "1.0.0",
-  "description": "caso de estudo ddd e tdd",
+  "description": "caso de estudo ddd, tdd e clean",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
