@@ -15,5 +15,10 @@
   "bugs": {
     "url": "https://github.com/bruno1576/CasoDeEstudoDDD/issues"
   },
-  "homepage": "https://github.com/bruno1576/CasoDeEstudoDDD#readme"
+  "homepage": "https://github.com/bruno1576/CasoDeEstudoDDD#readme",
+  "devDependencies": {
+    "@types/node": "^20.5.8",
+    "git-commit-msg-linter": "^5.0.4",
+    "typescript": "^5.2.2"
+  }
 }
