@@ -232,4 +232,99 @@ app.post(
 app.listen(port, () => {
   console.log(`Servidor está rodando em http://localhost:${port}`);
 });
+///////////
+
+import express, { Request, Response } from "express";
+import multer from "multer";
+import xlsx from "xlsx";
+import * as fs from "fs";
+import path from "path";
+
+const app = express();
+const port = 3000;
+
+// Configuração do multer para upload de arquivos
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+// Função para verificar se as colunas A, B, C e D existem em uma folha do Excel
+function verificaColunas(sheet: xlsx.WorkSheet): boolean {
+  const requiredColumns = ["A", "B", "C", "D"];
+
+  for (const col of requiredColumns) {
+    if (!sheet[col + "1"]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+app.post(
+  "/upload",
+  upload.single("excelFile"),
+  (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).send("Nenhum arquivo enviado.");
+      }
+
+      // Verifique se req.file.originalname existe antes de acessá-lo
+      const fileName = req.file.originalname || "Desconhecido";
+
+      const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
+
+      workbook.SheetNames.forEach((sheetName) => {
+        const sheet = workbook.Sheets[sheetName];
+
+        // Verifique se as colunas A, B, C e D existem na folha do Excel
+        if (verificaColunas(sheet)) {
+          console.log(
+            `O arquivo ${fileName} possui as colunas A, B, C e D na folha ${sheetName}.`
+          );
+        } else {
+          console.log(
+            `O arquivo ${fileName} não possui todas as colunas A, B, C e D na folha ${sheetName}.`
+          );
+        }
+
+        const data = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+
+        console.log(`Conteúdo da folha ${sheetName}:`);
+        console.log(data);
+      });
+
+      return res.status(200).send("Arquivo processado com sucesso.");
+    } catch (error) {
+      console.error("Erro ao processar o arquivo:", error);
+      return res.status(500).send("Erro interno do servidor.");
+    }
+  }
+);
+
+app.get("/download", (req, res) => {
+  const filePath = path.join(__dirname, "../planilha.xlsx");
+
+  // Verifica se o arquivo existe
+  if (fs.existsSync(filePath)) {
+    // Define o tipo de conteúdo como Excel
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    // Define o cabeçalho de resposta para download
+    res.setHeader("Content-Disposition", "attachment; filename=planilha.xlsx");
+
+    // Lê o arquivo e envia como resposta
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.pipe(res);
+  } else {
+    // Se o arquivo não existir, retorna um erro 404
+    res.status(404).send("File not found");
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Servidor está rodando em http://localhost:${port}`);
+});
 
